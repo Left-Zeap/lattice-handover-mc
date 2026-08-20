@@ -1,0 +1,13 @@
+{
+  "detuning_GHz": {
+    "start": 200.0,
+    "stop": 700.0,
+    "num": 11
+  },
+  "power_w": {
+    "start": 0.8,
+    "stop": 3.5,
+    "num": 10
+  },
+  "n_atoms_override": 1500
+}

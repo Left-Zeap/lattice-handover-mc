@@ -1,0 +1,96 @@
+{
+  "paper": {
+    "title": "Continuous operation of a coherent 3,000-qubit system",
+    "doi": "10.1038/s41586-025-09596-6",
+    "atom": "Rb-87",
+    "local_pdf": "Continuous operation of 3000qbit.pdf"
+  },
+  "vacuum_and_geometry": {
+    "dpt_front_aperture_mm": 4.3,
+    "dpt_back_aperture_mm": 1.5,
+    "mot_and_dpt_tilt_deg": 4.0,
+    "mot_line_of_sight_above_array_cm": 1.0,
+    "preparation_zone_above_reservoir_um": 220.0,
+    "source": "Methods p.1081; main text Fig.2"
+  },
+  "mot": {
+    "loading_time_ms": 80.0,
+    "loaded_atom_number": 10000000,
+    "cooling_detuning_from_F2_to_Fp3_MHz": -23.0,
+    "repump_transition": "F=1 -> F'=2, resonant sideband",
+    "magnetic_gradient_G_cm": 13.0,
+    "liad_wavelength_nm": 395.0,
+    "source": "Methods: MOT and lattice loading"
+  },
+  "compression_and_lgm": {
+    "compression_time_ms": 7.0,
+    "compression_final_detuning_MHz": -140.0,
+    "idle_time_ms": 1.0,
+    "lgm_time_ms": 11.0,
+    "lgm_carrier_detuning_from_F2_to_Fp2_MHz": 30.0,
+    "lgm_repumper_condition": "two-photon resonance between F=1 and F=2",
+    "lattice1_loaded_atom_number": 4000000,
+    "lattice1_initial_temperature_uK": 20.0,
+    "source": "Methods: MOT and lattice loading"
+  },
+  "lattice_common": {
+    "reference_line": "Rb-87 D1",
+    "operating_red_detuning_GHz": 300.0,
+    "comparison_red_detuning_GHz": 700.0,
+    "retro_aom_single_pass_efficiency": 0.88,
+    "quad_pass_efficiency": 0.59969536,
+    "typical_incoming_power_W": 1.0,
+    "reported_depth_lower_bound_uK": 500.0,
+    "velocity_relation": "v = lambda * delta_nu / 2",
+    "source": "Methods: Dual-lattice optical transport"
+  },
+  "lattice1": {
+    "waist_at_mot_um": 330.0,
+    "minimum_waist_um": 250.0,
+    "transport_distance_cm": 39.0,
+    "extended_figure2a_optimal_handover_distance_cm": 38.85,
+    "extended_figure2a_scan_distance_cm": [38.0, 39.7],
+    "transport_time_ms": 50.0,
+    "reported_optimal_acceleration_m_s2": 4000.0,
+    "reported_velocity_range_m_s": [8.0, 10.0],
+    "source": "Methods and Extended Data Fig.2"
+  },
+  "handover": {
+    "operating_time_ms": 1.0,
+    "extended_figure2b_scan_time_ms": [0.2, 0.4],
+    "extended_figure2b_rapid_rise_time_ms": [0.3, 0.33],
+    "method": "simultaneous opposite linear intensity ramps, no cooling light",
+    "model_crossing_angle_deg": 4.0,
+    "model_crossing_angle_note": "The exact lattice crossing angle is not tabulated; 4 deg is a configurable default inferred from the chamber tilt.",
+    "model_cloud_axial_sigma_mm": 0.5,
+    "model_cloud_size_note": "The handover cloud length is not tabulated; 0.5 mm (1 sigma) is a configurable engineering assumption.",
+    "source": "Methods and Extended Data Fig.2b"
+  },
+  "lattice2": {
+    "minimum_waist_in_science_um": 150.0,
+    "transport_distance_cm": 17.0,
+    "transport_time_ms": 21.0,
+    "reported_optimal_acceleration_m_s2": 4000.0,
+    "reported_velocity_range_m_s": [8.0, 10.0],
+    "source": "Methods and Extended Data Fig.2"
+  },
+  "science_reservoir": {
+    "atom_number": 2500000,
+    "temperature_uK": 120.0,
+    "dual_lattice_transport_efficiency": 0.6,
+    "temperature_ratio_to_initial": 6.0,
+    "replacement_period_ms": 150.0,
+    "no_reservoir_window_ms": 21.0,
+    "reported_peak_density_cm3": 500000000000.0,
+    "reported_tweezer_overlap_volume_m3": 1e-17,
+    "reported_stochastic_overlap_atoms": 5.0,
+    "reported_collision_density_m3_s": 3e19,
+    "source": "Main text Fig.1 and Methods: Dual-lattice transport / loading"
+  },
+  "paper_interpretation_limits": {
+    "power_definition_ambiguity": "Pin is described as typical incoming power; the exact forward power at each waist and full power ramp are not tabulated.",
+    "temperature_trace_missing": "Only initial and delivered temperatures plus plotted points are available; no time-resolved temperature trace is supplied.",
+    "technical_noise_missing": "RIN, lattice phase noise, beam pointing PSD and exact AOM frequency waveforms are not supplied.",
+    "handover_phase_missing": "The relative standing-wave phase and site-to-site mapping at the angled handover are not specified."
+  }
+}

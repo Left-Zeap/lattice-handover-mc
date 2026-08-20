@@ -1,0 +1,121 @@
+{
+  "atom": "Rb-87",
+  "species_defaults": {
+    "Rb-87": {
+      "delivery_efficiency": 1.0,
+      "reference_point": {
+        "label": "Paper operating point",
+        "detuning_ghz": 300.0,
+        "handover_source_power_w": 1.0,
+        "note": "The paper reports 1 W typical incoming power at 300 GHz red detuning; its exact measurement plane and full ramp are not tabulated."
+      }
+    },
+    "Cs-133": {
+      "delivery_efficiency": 0.7,
+      "initial_temperature_basis": "Engineering comparison assumption; a Cs L1 initial temperature has not been measured in this project.",
+      "reference_point": {
+        "label": "Cs 600 GHz / 500 uK design",
+        "detuning_ghz": 600.0,
+        "target_depth_uK": 500.0,
+        "note": "Source power is solved from the 500 uK handover-depth target using the configured 70% delivery efficiency."
+      }
+    }
+  },
+  "scan": {
+    "detuning_min_ghz": 100.0,
+    "detuning_max_ghz": 800.0,
+    "detuning_points": 25,
+    "handover_source_power_min_w": 0.0,
+    "handover_source_power_max_w": 1.5,
+    "power_points": 25
+  },
+  "initial_state": {
+    "mot_atom_number": 10000000.0,
+    "pre_ramp_survival_fraction": 1.0,
+    "loaded_l1_atom_number": 4000000.0,
+    "temperature_uK": 20.0,
+    "occupied_lattice_sites": 5361.0
+  },
+  "transport": {
+    "distance_m": 0.39,
+    "acceleration_m_s2": 4000.0,
+    "maximum_velocity_m_s": 8.13,
+    "start_waist_um": 330.0,
+    "handover_waist_um": 250.0,
+    "time_points": 401
+  },
+  "l2_transport": {
+    "distance_m": 0.17,
+    "acceleration_m_s2": 4000.0,
+    "maximum_velocity_m_s": 9.07,
+    "end_waist_um": 150.0,
+    "time_points": 201,
+    "occupied_lattice_sites": 5361.0,
+    "duration_note": "Trapezoid v_max reproduces the paper's 17 cm / 21 ms L2 stage; waist interpolates from the 250 um handover waist to end_waist_um. Paper values are direct quotes; v_max is derived from distance, duration and acceleration."
+  },
+  "optics": {
+    "delivery_efficiency": 1.0,
+    "retro_power_ratio": 0.59969536,
+    "target_depth_uK": 500.0,
+    "maximum_l1_source_power_w": 10.0
+  },
+  "conveyor_geometry": {
+    "enabled": false,
+    "waist_um": 250.0,
+    "waist_separation_cm": 19.5,
+    "note": "Optional offset-waist conveyor geometry (reports/offset_waist双束conveyor几何理论框架.md). Disabled by default; when enabled the two beam waists sit at (L-s)/2 and (L+s)/2 with constant per-branch source power. 19.5 cm = L1 distance/2, i.e. waists at the 1/4 and 3/4 points."
+  },
+  "transport_monte_carlo": {
+    "enabled": false,
+    "time_step_us": 0.5,
+    "note": "Optional trajectory-level Monte Carlo for the L1/L2 transport legs (reports/运输蒙特卡洛与双束底层光场理论框架.md). Disabled by default; when enabled simulate_l1_transport branches to transport_mc.simulate_leg_monte_carlo and the L2 leg inherits via replace. particle_count, seed, include_scattering and cloud_axial_sigma_mm are shared with the handover_monte_carlo group; tens of seconds per grid point at N=1000 for L1."
+  },
+  "handover_preconditions": {
+    "minimum_depth": false,
+    "maximum_start_power": false,
+    "critical_acceleration": false
+  },
+  "loss": {
+    "background_loss_rate_s": 0.0,
+    "internal_loss_probability_per_scatter": 0.0,
+    "two_body_loss_coefficient_m3_s": 0.0,
+    "three_body_loss_coefficient_m6_s": 0.0
+  },
+  "noise": {
+    "intensity_noise_psd_1_hz": 0.0,
+    "position_noise_psd_m2_hz": 0.0
+  },
+  "selection": {
+    "temperature_weight": 0.5,
+    "retention_weight": 0.5
+  },
+  "handover_monte_carlo": {
+    "duration_us": 1000.0,
+    "particle_count": 1000,
+    "time_step_us": 0.25,
+    "trace_points": 41,
+    "include_scattering": true,
+    "seed": 20250902,
+    "compute_backend": "cpu",
+    "backend_note": "compute_backend: cpu (NumPy, default) or gpu (CuPy/CUDA; inner trajectory loops run on GPU, outer scan should use serial backend)",
+    "parallel_backend": "process",
+    "worker_count": 20,
+    "crossing_angle_deg": 4.0,
+    "cloud_axial_sigma_mm": 0.5,
+    "l2_transverse_offset_um": 0.0,
+    "randomize_relative_phase": true,
+    "adaptive_refinement": {
+      "enabled": false,
+      "target_standard_error": 0.005,
+      "max_particle_count": 100000,
+      "note": "Two-stage adaptive particle allocation for the handover Monte Carlo grid: first pass uses particle_count trajectories per point; points whose transfer-efficiency Jeffreys standard error exceeds target_standard_error are re-run with particle_count*(SE/target)^2 trajectories (same L1 final state, same seed), capped by max_particle_count. Disabled by default; applies to l1-handover-scan / full-chain-scan / handover-map on both CPU and GPU backends."
+    }
+  },
+  "plot": {
+    "figure_width_in": 14.0,
+    "figure_height_in": 9.0,
+    "dpi": 180,
+    "temperature_colormap": "inferno",
+    "retention_colormap": "viridis"
+  }
+}

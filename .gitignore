@@ -1,0 +1,13 @@
+# 虚拟环境与缓存
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.pytest_tmp/
+
+# 临时工作目录（复现脚本、诊断输出、基线数据）
+tmp/
+
+# 系统文件
+.DS_Store
+Thumbs.db

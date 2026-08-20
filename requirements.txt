@@ -1,0 +1,6 @@
+matplotlib>=3.8
+numpy>=1.26
+pytest>=8.0
+# 可选 GPU 加速（Monte Carlo 内层积分）：compute_backend="gpu" 时需要
+# cupy-cuda13x 及 NVIDIA CUDA 库（与本机驱动匹配的 CuPy 版本）；
+# 不安装时全部功能在 CPU 后端下正常工作。

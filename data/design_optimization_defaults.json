@@ -1,0 +1,69 @@
+{
+  "atom": "Cs-133",
+  "scan": {
+    "detuning_min_ghz": 300.0,
+    "detuning_max_ghz": 1000.0,
+    "detuning_points": 15,
+    "source_power_min_w": 1.0,
+    "source_power_max_w": 6.0,
+    "power_points": 21,
+    "waist_min_um": 200.0,
+    "waist_max_um": 300.0,
+    "waist_points": 5
+  },
+  "fixed_handover": {
+    "time_us": 1000.0,
+    "post_handover_acceleration_m_s2": 4000.0,
+    "lattice1_velocity_m_s": 0.0,
+    "lattice2_velocity_m_s": 0.0,
+    "crossing_angle_deg": 4.0,
+    "cloud_axial_sigma_mm": 0.5,
+    "l2_transverse_offset_um": 0.0
+  },
+  "constraints": {
+    "target_depth_uK": 500.0,
+    "target_bound_fraction": 0.8,
+    "minimum_axial_cycles": 80.0,
+    "max_scattering_rate_s": 600.0,
+    "delivery_efficiency": 0.7,
+    "retro_power_ratio": 0.59969536
+  },
+  "robustness": {
+    "relative_tolerance": 0.1,
+    "variation_mode": "one_at_a_time",
+    "monte_carlo_candidate_count": 8,
+    "minimum_transfer_efficiency": 0.9,
+    "confidence_sigma": 2.0
+  },
+  "species": {
+    "Cs-133": {
+      "initial_temperature_uK": 120.0,
+      "initial_atom_number": 4000000.0
+    },
+    "Rb-87": {
+      "initial_temperature_uK": 30.8,
+      "initial_atom_number": 4000000.0
+    }
+  },
+  "monte_carlo": {
+    "particle_count": 300,
+    "time_step_us": 0.25,
+    "include_scattering": true,
+    "seed": 20250902,
+    "parallel_backend": "process",
+    "worker_count": 8
+  },
+  "phase_scan": {
+    "phase_points": 13,
+    "phase_min_rad": 0.0,
+    "phase_max_rad": 3.141592653589793
+  },
+  "plot": {
+    "figure_width_in": 15.0,
+    "figure_height_in": 4.8,
+    "dpi": 180,
+    "margin_color_limit": 0.25,
+    "margin_colormap": "RdYlGn",
+    "waist_colormap": "viridis"
+  }
+}

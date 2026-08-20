@@ -1,0 +1,24 @@
+{
+  "rb87": {
+    "mass_u": 86.909180531,
+    "D1": {
+      "wavelength_nm": 794.978851156,
+      "linewidth_MHz": 5.746
+    },
+    "D2": {
+      "wavelength_nm": 780.241209686,
+      "linewidth_MHz": 6.065
+    }
+  },
+  "cs133": {
+    "mass_u": 132.90545196,
+    "D1": {
+      "wavelength_nm": 894.59295986,
+      "linewidth_MHz": 4.575
+    },
+    "D2": {
+      "wavelength_nm": 852.34727582,
+      "linewidth_MHz": 5.234
+    }
+  }
+}

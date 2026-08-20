@@ -1,0 +1,85 @@
+{
+  "scan": {
+    "detuning_min_ghz": 100.0,
+    "detuning_max_ghz": 800.0,
+    "source_power_min_w": 0.0,
+    "source_power_max_w": 1.5,
+    "detuning_points": 25,
+    "power_points": 25
+  },
+  "monte_carlo": {
+    "particle_count": 10000,
+    "time_step_us": 0.25,
+    "include_scattering": true,
+    "seed": 20250902
+  },
+  "parallel": {
+    "backend": "process",
+    "worker_count": 20
+  },
+  "handover": {
+    "time_us": 1000.0
+  },
+  "preconditions": {
+    "minimum_depth": false,
+    "thermal_bound_fraction": false,
+    "minimum_axial_cycles": false
+  },
+  "pipeline": {
+    "use_l1_transport": true,
+    "write_l1_outputs": true
+  },
+  "shared_design": {
+    "waist_um": 250.0,
+    "target_depth_uK": 500.0,
+    "target_bound_fraction": 0.8,
+    "post_handover_acceleration_m_s2": 4000.0,
+    "minimum_axial_cycles": 80.0,
+    "max_scattering_rate_s": 600.0,
+    "delivery_efficiency": 0.7,
+    "retro_power_ratio": 0.59969536
+  },
+  "species": {
+    "Cs-133": {
+      "initial_temperature_uK": 120.0,
+      "crossing_angle_deg": 4.0,
+      "cloud_axial_sigma_mm": 0.5,
+      "l2_transverse_offset_um": 0.0,
+      "randomize_relative_phase": true
+    },
+    "Rb-87": {
+      "initial_temperature_uK": 30.8,
+      "crossing_angle_deg": 4.0,
+      "cloud_axial_sigma_mm": 0.5,
+      "l2_transverse_offset_um": 0.0,
+      "randomize_relative_phase": true
+    }
+  },
+  "angle_scan": {
+    "angle_min_deg": 0.0,
+    "angle_max_deg": 90.0,
+    "angle_step_deg": 1.0,
+    "target_depth_uK": 500.0,
+    "waist_um": 250.0,
+    "particle_count": 10000,
+    "time_step_us": 0.25,
+    "trace_points": 21,
+    "include_scattering": true,
+    "seed": 20250902,
+    "parallel_backend": "process",
+    "worker_count": 20,
+    "species_detuning_ghz": {
+      "Rb-87": 300.0,
+      "Cs-133": 600.0
+    }
+  },
+  "plot": {
+    "figure_width_in": 13.5,
+    "figure_height_in": 5.2,
+    "efficiency_color_min": 0.0,
+    "efficiency_color_max": 1.0,
+    "colormap": "viridis",
+    "boundary_sample_points": 401,
+    "dpi": 180
+  }
+}

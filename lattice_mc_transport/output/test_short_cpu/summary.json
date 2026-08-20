@@ -1,0 +1,15 @@
+{
+  "backend": "cpu",
+  "species": "rb87",
+  "d1_red_detuning_GHz": 300.0,
+  "laser_wavelength_nm": 795.6117835645242,
+  "n_atoms": 500,
+  "final_survival": 1.0,
+  "final_temperature_uK": 20.857172282814727,
+  "final_Txyz_uK": [
+    18.65643642058381,
+    24.07360526759506,
+    19.841475160265304
+  ],
+  "total_scatter_events": 4470
+}

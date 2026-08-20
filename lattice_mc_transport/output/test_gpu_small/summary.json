@@ -1,0 +1,15 @@
+{
+  "backend": "gpu",
+  "species": "rb87",
+  "d1_red_detuning_GHz": 300.0,
+  "laser_wavelength_nm": 795.6117835645242,
+  "n_atoms": 500,
+  "final_survival": 0.0,
+  "final_temperature_uK": NaN,
+  "final_Txyz_uK": [
+    NaN,
+    NaN,
+    NaN
+  ],
+  "total_scatter_events": 6485
+}
