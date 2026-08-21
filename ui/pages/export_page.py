@@ -166,7 +166,7 @@ class ExportPage(QWidget):
                     detunings, powers, matrix, shading="nearest", cmap="viridis"
                 )
                 axis.set_xlabel("D1 红失谐 (GHz)")
-                axis.set_ylabel("源端功率 (W)")
+                axis.set_ylabel("固定源端功率/分支 (W)")
                 axis.set_title(title)
                 self.preview.figure.colorbar(mesh, ax=axis)
         self.preview.redraw()

@@ -128,6 +128,11 @@ print(result.depth_uK, result.scattering_rate_s)
 在 `transport.py` 的宏观方法上补充连续时序积分。扫描变量为 handover
 端每分支源端功率和 D1 红失谐；加速度、最大速度与距离固定。模块输出
 最终升温/留存率二维网格，以及最优点和较差可行点的完整时间轨迹。
+L1 光束由起点直径 `start_beam_diameter_um`、最小半径
+`minimum_waist_um` 和距起点焦点位置 `minimum_waist_position_m` 标定：
+`z_R,eff=z0/sqrt[(w_start/w0)^2-1]`，随后逐点计算
+`w(z)=w0 sqrt[1+((z-z0)/z_R,eff)^2]`；trace 同时提供半径 `waist_um`
+和派生直径 `beam_diameter_um`。
 
 公开接口为 `simulate_l1_transport()`（单参数点）和
 `analyze_l1_transport_scan()`（二维扫描）。损失模型只使用统计速率方程
@@ -159,7 +164,7 @@ conveyor 都定义光学剖面，当前要求二选一。
 [`../reports/可选运输模型理论框架.md`](../reports/可选运输模型理论框架.md)
 §3。`L1TransportInputs.conveyor_enabled=True` 时
 `simulate_l1_transport()` 走逐点几何剖面 + 恒源端功率分支（L2 腿经
-`replace` 自动继承）；关闭时行为与既有模型逐位一致。
+`replace` 自动继承）；关闭时使用 L1 标定高斯包络；旧输入仍可显式回退线性端点剖面。
 
 ### `transport_mc.py`
 
@@ -370,9 +375,9 @@ CPU 进程数集中保存在
 
 把 handover 捕获样本（末温、原子数）作为初态，复用
 `simulate_l1_transport()` 的单段积分器计算 L2 段（0.17 m、21 ms、
-束腰 250→150 µm、加速度 4000 m/s²）的宏观升温和统计留存，并汇总
-科学区原子库的峰值密度和每格点原子数。恒阱深假设下 L2 末端源功率
-= handover 端功率 × (150/250)²。固定参数集中在
+束腰由 L1 计算的 handover 半径→150 µm、加速度 4000 m/s²）的宏观升温和统计留存，并汇总
+科学区原子库的峰值密度和每格点原子数。L2 源端功率与 handover 端
+保持相同，局部光强和阱深随束腰按高斯标度变化。固定参数集中在
 `data/l1_transport_defaults.json` 的 `l2_transport` 分组。
 
 注意口径假设：handover 的 `final_temperature_uK` 是捕获样本总激发能
@@ -559,7 +564,7 @@ python -m continuous_loading l1-transport-scan `
 
 默认扫描范围统一为 100–800 GHz 和 0–1.5 W；MOT 出射初温从
 `data/l1_transport_defaults.json` 的 `initial_state.temperature_uK`
-读取，默认 30 µK。
+读取，默认 20 µK。
 
 `handover_preconditions` 可分别开关最小阱深、L1 起点最大功率和临界
 加速度条件。CLI 对应支持 `--minimum-depth/--no-minimum-depth`、

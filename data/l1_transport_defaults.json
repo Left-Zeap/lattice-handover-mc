@@ -41,7 +41,10 @@
     "acceleration_m_s2": 4000.0,
     "maximum_velocity_m_s": 8.13,
     "start_waist_um": 330.0,
-    "handover_waist_um": 250.0,
+    "start_beam_diameter_um": 660.0,
+    "minimum_waist_um": 250.0,
+    "minimum_waist_position_m": 0.2,
+    "handover_waist_um": 323.1,
     "time_points": 401
   },
   "l2_transport": {
@@ -51,7 +54,7 @@
     "end_waist_um": 150.0,
     "time_points": 201,
     "occupied_lattice_sites": 5361.0,
-    "duration_note": "Trapezoid v_max reproduces the paper's 17 cm / 21 ms L2 stage; waist interpolates from the 250 um handover waist to end_waist_um. Paper values are direct quotes; v_max is derived from distance, duration and acceleration."
+    "duration_note": "Trapezoid v_max reproduces the paper's 17 cm / 21 ms L2 stage; waist interpolates from the L1-calculated handover radius to end_waist_um. Paper values are approximate; v_max is derived from distance, duration and acceleration."
   },
   "optics": {
     "delivery_efficiency": 1.0,

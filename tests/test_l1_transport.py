@@ -2,6 +2,7 @@ import math
 from dataclasses import replace
 
 import numpy as np
+import pytest
 
 from continuous_loading.l1_transport import (
     L1TransportInputs,
@@ -34,15 +35,41 @@ def test_trapezoidal_timing_matches_distance_and_default_scale():
     assert inputs.initial_temperature_uK == 20.0
 
 
-def test_single_point_tracks_power_scaling_and_monotone_retention():
+def test_calibrated_l1_gaussian_geometry_and_diameter_interface():
+    inputs = L1TransportInputs()
+
+    assert inputs.calibrated_gaussian_geometry
+    assert inputs.start_beam_diameter_um == 660.0
+    assert inputs.minimum_waist_um == 250.0
+    assert inputs.minimum_waist_position_m == 0.2
+    assert inputs.effective_rayleigh_range_m == pytest.approx(0.2321191727)
+    assert inputs.beam_radius_um_at(0.0) == pytest.approx(330.0)
+    assert inputs.beam_radius_um_at(0.2) == pytest.approx(250.0)
+    assert inputs.handover_waist_um == pytest.approx(323.0727472)
+    assert inputs.beam_diameter_um_at(inputs.distance_m) == pytest.approx(
+        646.1454944
+    )
+
+    trace = simulate_l1_transport(replace(inputs, time_points=41), 300.0, 1.0)
+    assert trace.waist_um[0] == pytest.approx(330.0)
+    assert trace.waist_um[-1] == pytest.approx(inputs.handover_waist_um)
+    assert trace.beam_diameter_um == pytest.approx(
+        tuple(2.0 * value for value in trace.waist_um)
+    )
+
+
+def test_calibrated_l1_geometry_rejects_inconsistent_inputs():
+    with pytest.raises(ValueError, match="最小束腰位置"):
+        replace(L1TransportInputs(), minimum_waist_position_m=0.4)
+    with pytest.raises(ValueError, match="起点光束半径"):
+        replace(L1TransportInputs(), minimum_waist_um=340.0)
+
+
+def test_single_point_keeps_source_power_fixed_and_monotone_retention():
     inputs = L1TransportInputs(time_points=61)
     trace = simulate_l1_transport(inputs, 300.0, 1.5)
 
-    expected_start_power = 1.5 * (
-        inputs.start_waist_um / inputs.handover_waist_um
-    ) ** 2
-    assert math.isclose(trace.source_power_w[0], expected_start_power)
-    assert math.isclose(trace.source_power_w[-1], 1.5)
+    assert all(math.isclose(power, 1.5) for power in trace.source_power_w)
     assert trace.point.final_temperature_uK > inputs.initial_temperature_uK
     assert np.all(np.diff(trace.retention_fraction) <= 1e-14)
     assert 0.0 <= trace.point.final_retention_fraction <= 1.0
@@ -123,7 +150,7 @@ def test_rb_paper_point_and_cs_reference_use_explicit_power_conventions():
     assert rb_reference.label == "Paper operating point"
     assert rb_reference.point.detuning_ghz == 300.0
     assert rb_reference.point.handover_source_power_w == 1.0
-    assert 500.0 < rb_reference.point.depth_uK < 520.0
+    assert 300.0 < rb_reference.point.depth_uK < 312.0
 
     cs_inputs = replace(
         l1_transport_inputs_for_species("Cs-133"),

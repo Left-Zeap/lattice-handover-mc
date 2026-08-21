@@ -178,7 +178,7 @@ class TimingPage(QWidget):
         )
 
         ax = axes[1]
-        ax.plot(time_ms, series["waist_um"], color="#2563eb", label="束腰 (µm)")
+        ax.plot(time_ms, series["beam_diameter_um"], color="#2563eb", label="光束直径 2w (µm)")
         ax_right = ax.twinx()
         ax_right.plot(
             time_ms,
@@ -188,14 +188,14 @@ class TimingPage(QWidget):
             label="源端功率/分支 (W)",
         )
         ax.set_xlabel("时间 (ms)")
-        ax.set_ylabel("束腰 (µm)")
-        ax_right.set_ylabel("源端功率 (W)")
+        ax.set_ylabel("光束直径 2w (µm)")
+        ax_right.set_ylabel("源端功率/分支 (W)")
         lines = ax.get_lines() + ax_right.get_lines()
         ax.legend(lines, [line.get_label() for line in lines], fontsize=8, loc="best")
         ax.set_title("光路时序（L1+L2）")
         ax.grid(alpha=0.2)
         self._register_cursor(ax, time_ms)
-        self._register_marker(ax, time_ms, series["waist_um"], "#2563eb")
+        self._register_marker(ax, time_ms, series["beam_diameter_um"], "#2563eb")
         self._register_marker(
             ax_right, time_ms, series["source_power_w"], "#dc2626"
         )

@@ -201,6 +201,8 @@ def test_full_chain_gpu_mc_l2_legs_batched(monkeypatch):
     transport = replace(
         l1_transport_inputs_for_species("Rb-87"),
         distance_m=0.005,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         acceleration_m_s2=4000.0,
         maximum_velocity_m_s=4.0,
         detuning_min_ghz=250.0,

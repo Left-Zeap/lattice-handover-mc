@@ -318,7 +318,8 @@ RawKernel 编译失败自动回退逐步融合 kernel（逐式同构、统计一
 
 同属可选开关的还有 `l1_transport_defaults.json/conveyor_geometry`：
 启用后 L1/L2 运输腿改用 offset-waist 双束几何（逐点阱深剖面 +
-恒源端功率），默认关闭且关闭时行为不变，详见
+恒源端功率）；默认关闭，L1 关闭时采用起点直径、最小束腰和焦点位置
+标定的高斯包络，详见
 `reports/可选运输模型理论框架.md`。
 `l1_transport_defaults.json/transport_monte_carlo` 启用后 L1/L2 运输
 腿改用轨迹级 Monte Carlo（底层双束光场、逃逸剔除、Jeffreys 标准误，

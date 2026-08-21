@@ -24,7 +24,7 @@ def test_l2_defaults_reproduce_paper_stage():
     assert total_time == pytest.approx(0.021, rel=0.02)
 
 
-def test_l2_end_power_follows_constant_depth_scaling():
+def test_l2_keeps_source_power_fixed():
     transport = l1_transport_inputs_for_species("Rb-87")
     result = simulate_l2_transport(
         transport,
@@ -35,8 +35,7 @@ def test_l2_end_power_follows_constant_depth_scaling():
         captured_atom_number=3.0e6,
     )
 
-    # 恒阱深假设：源功率随束腰平方缩放，(150/250)^2 = 0.36。
-    assert result.end_source_power_w == pytest.approx(0.36, rel=1e-12)
+    assert result.end_source_power_w == pytest.approx(1.0, rel=1e-12)
     assert result.leg_trace.point.start_source_power_w == pytest.approx(1.0)
 
 
@@ -52,7 +51,7 @@ def test_l2_adiabatic_compression_heats_and_retention_bounds_atom_number():
         captured_atom_number=captured_atoms,
     )
 
-    # 束腰 250→150 µm 的绝热压缩倍数约为 (250/150)^(2/3) ≈ 1.41；
+    # 默认 L1 交接半径约 323 µm，L2 压缩至 150 µm；绝热压缩会显著升温，
     # 散射反冲只会在此基础上继续升温。
     assert result.final_temperature_uK > 35.0 * 1.3
     # 散射和噪声损失的默认系数为零，腿内留存只来自有限势垒热溢出。

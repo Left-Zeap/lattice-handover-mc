@@ -179,19 +179,19 @@ class ScanPage(QWidget):
         self.scan_power_min.setDecimals(2)
         self.scan_power_min.setSingleStep(0.1)
         self.scan_power_min.setValue(float(defaults["scan_power_min_w"]))
-        form.addRow("功率下限 (W)", self.scan_power_min)
+        form.addRow("固定源功率下限/分支 (W)", self.scan_power_min)
 
         self.scan_power_max = NoWheelDoubleSpinBox()
         self.scan_power_max.setRange(0.01, 50.0)
         self.scan_power_max.setDecimals(2)
         self.scan_power_max.setSingleStep(0.1)
         self.scan_power_max.setValue(float(defaults["scan_power_max_w"]))
-        form.addRow("功率上限 (W)", self.scan_power_max)
+        form.addRow("固定源功率上限/分支 (W)", self.scan_power_max)
 
         self.scan_power_points = NoWheelSpinBox()
         self.scan_power_points.setRange(2, 201)
         self.scan_power_points.setValue(int(defaults["scan_power_points"]))
-        form.addRow("功率点数", self.scan_power_points)
+        form.addRow("源功率点数", self.scan_power_points)
         return group
 
     def _gather_grid_params(self) -> dict[str, object]:
@@ -209,7 +209,7 @@ class ScanPage(QWidget):
         group = QGroupBox("条件筛选（基于已算数据框选，不重新计算）")
         grid = QGridLayout(group)
 
-        self.power_check = QCheckBox("功率上限 P ≤")
+        self.power_check = QCheckBox("固定源功率上限 P ≤")
         self.power_check.setChecked(True)
         self.power_spin = NoWheelDoubleSpinBox()
         self.power_spin.setRange(0.0, 50.0)
@@ -252,7 +252,7 @@ class ScanPage(QWidget):
         self.expression_edit = QLineEdit()
         self.expression_edit.setPlaceholderText("(P<=1.2)&(ret>=0.35)&(heat<=40)")
         self.expression_edit.setToolTip(
-            "可用变量：P（源端功率 W）、ret（相对 MOT 总留存）、\n"
+            "可用变量：P（每分支固定源端功率 W）、ret（相对 MOT 总留存）、\n"
             "heat（科学区总升温 µK）、eff（handover 交接率）、dens（峰值密度 m⁻³）；\n"
             "支持比较、and/or/&amp;|、括号和一元负号。留空则用左侧勾选条件。"
         )
@@ -412,7 +412,7 @@ class ScanPage(QWidget):
                 cmap=cmap,
             )
             axis.set_xlabel("D1 红失谐 (GHz)")
-            axis.set_ylabel("handover 端源端功率 (W)")
+            axis.set_ylabel("固定源端功率/分支 (W)")
             axis.set_title(title)
             self.heatmap_canvas.figure.colorbar(mesh, ax=axis)
         if self._mask is not None:
@@ -442,7 +442,7 @@ class ScanPage(QWidget):
             axis.set_xlim(detuning_min, detuning_max)
             axis.set_ylim(power_min, power_max)
             axis.set_xlabel("D1 红失谐 (GHz)")
-            axis.set_ylabel("handover 端源端功率 (W)")
+            axis.set_ylabel("固定源端功率/分支 (W)")
             axis.set_title(title)
             axis.text(
                 0.5,
@@ -535,7 +535,7 @@ class ScanPage(QWidget):
         )
         self.detail_label.setText(
             f"网格点：失谐 {detunings[detuning_index]:g} GHz，"
-            f"功率 {powers[power_index]:g} W | "
+            f"固定源功率/分支 {powers[power_index]:g} W | "
             f"L1 可行 {'是' if feasible else '否'} | "
             f"交接率 {format_value(efficiency)} | "
             f"科学区总升温 {format_value(heating)} µK | "

@@ -51,6 +51,8 @@ def _small_leg_inputs(**overrides):
     """小距离运输腿：总时长约 2.25 ms，0.5 µs 步长下 4500 步。"""
     base = dict(
         distance_m=0.005,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         acceleration_m_s2=4000.0,
         maximum_velocity_m_s=4.0,
         time_points=21,

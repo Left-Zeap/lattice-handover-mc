@@ -22,9 +22,9 @@ from ..widgets.result_cards import format_value
 _CHAIN_STAGES = (
     ("MOT/compress/idle", "边界分布与前级存活率"),
     ("静止 L1 初态", "晶格热平衡系综\n默认 20 µK"),
-    ("L1 运输", "39 cm / 45 ms\n束腰 330→250 µm"),
+    ("L1 运输", "39 cm / 45 ms\\n直径 660→500→约646 µm"),
     ("handover", "1 ms 三维轨迹\nMonte Carlo"),
-    ("L2 运输", "17 cm / 21 ms\n束腰 250→150 µm"),
+    ("L2 运输", "17 cm / 21 ms\\n直径 约646→300 µm"),
     ("科学区", "原子库密度\n总升温与留存"),
 )
 
@@ -88,10 +88,13 @@ class OverviewPage(QWidget):
         defaults = controllers.default_form_params("Rb-87")
         lines = (
             f"工作点：失谐 {defaults['detuning_ghz']:g} GHz，"
-            f"源端功率 {defaults['source_power_w']:g} W，"
-            f"束腰 {defaults['handover_waist_um']:g} µm，"
+            f"L1/L2 固定源功率/分支 {defaults['source_power_w']:g} W，"
+            f"handover 半径 {defaults['handover_waist_um']:g} µm，"
             f"回程功率比 {defaults['retro_power_ratio']:g}",
             f"L1：距离 {defaults['l1_distance_m']:g} m，"
+            f"起点直径 {defaults['l1_start_beam_diameter_um']:g} µm，"
+            f"最小半径 {defaults['l1_minimum_waist_um']:g} µm @ "
+            f"{defaults['l1_minimum_waist_position_m']:g} m，"
             f"加速度 {defaults['l1_acceleration_m_s2']:g} m/s²，"
             f"最大速度 {defaults['l1_maximum_velocity_m_s']:g} m/s，"
             f"初温 {defaults['initial_temperature_uK']:g} µK",

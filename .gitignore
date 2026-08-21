@@ -11,3 +11,6 @@ tmp/
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# 本地录屏与视频素材
+*.mp4

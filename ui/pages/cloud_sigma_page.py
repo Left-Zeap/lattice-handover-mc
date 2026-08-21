@@ -89,7 +89,7 @@ class CloudSigmaPage(QWidget):
         right_layout.addLayout(button_row)
 
         self.progress_label = QLabel(
-            "就绪（固定失谐/功率工作点，扫描原子云轴向宽度 σ；"
+            "就绪（固定失谐/固定源功率工作点，扫描原子云轴向宽度 σ；"
             "σ=0 表示全部原子位于中心格点链；"
             "连续相空间或 Monte Carlo 运输模式下每个 σ 点数十秒级）"
         )

@@ -147,6 +147,8 @@ def test_measured_transport_waveform_drives_timing_aom_and_power() -> None:
     inputs = replace(
         l1_transport_inputs_for_species("Rb-87"),
         distance_m=0.002,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         time_points=5,
         control_waveform=waveform,
     )
@@ -162,6 +164,8 @@ def test_minimum_jerk_transport_has_zero_boundary_acceleration_and_gpu_parity() 
     inputs = replace(
         l1_transport_inputs_for_species("Rb-87"),
         distance_m=0.1,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         acceleration_m_s2=100.0,
         maximum_velocity_m_s=1.0,
         kinematic_profile="minimum_jerk",
@@ -222,6 +226,8 @@ def test_particle_ensemble_transport_keeps_default_trace_interface_optional() ->
     inputs = replace(
         l1_transport_inputs_for_species("Rb-87"),
         distance_m=1e-9,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         acceleration_m_s2=0.1,
         maximum_velocity_m_s=1e-5,
         transport_method="monte_carlo",
@@ -272,6 +278,8 @@ def _small_continuous_transport(backend: str):
         transport_method="monte_carlo",
         kinematic_profile='minimum_jerk',
         distance_m=1e-9,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         acceleration_m_s2=0.1,
         maximum_velocity_m_s=5e-6,
         transport_time_step_us=0.05,

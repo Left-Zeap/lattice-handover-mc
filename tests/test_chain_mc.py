@@ -35,6 +35,9 @@ def _transport_inputs(**overrides):
     """小距离运输腿：总时长约 2.25 ms，0.5 µs 步长下 4500 步。"""
     base = dict(
         distance_m=0.005,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
+        handover_waist_um=250.0,
         acceleration_m_s2=4000.0,
         maximum_velocity_m_s=4.0,
         time_points=21,
@@ -236,38 +239,37 @@ def test_same_seed_reproducible(chain_result):
 # ---- transport_mc 逃逸判据参数化回归 ----
 
 _BASELINE_PARTICLE_COUNT = 200
-# 以下基线在 transport_mc.py 参数化修改 + 步长精度守卫（ω_z·dt ≤ 1，
-# 实际步长 0.5 → 0.408 µs）之后用同一代码路径再捕获（小距离腿、
-# 300 GHz/1.0 W、200 粒子、seed 20250902、含散射、初温 30 µK）。
+# 固定源端功率模型的确定性基线；步长守卫为 ω_z·dt ≤ 1。使用小距离腿、
+# 300 GHz/1.0 W、200 粒子、seed 20250902、含散射、初温 30 µK。
 _BASELINE_FINAL_RETENTION = 1.0
-_BASELINE_FINAL_TEMPERATURE_UK = 35.36944549217387
-_BASELINE_SCATTERING_EVENTS = 1.28
+_BASELINE_FINAL_TEMPERATURE_UK = 57.88070002673168
+_BASELINE_SCATTERING_EVENTS = 0.915
 _BASELINE_RETENTION_STANDARD_ERROR = 0.0035048581724460605
 _BASELINE_FINAL_ENSEMBLE_COUNT = 200
 _BASELINE_TEMPERATURE_UK = (
-    28.091035263730245,
-    27.581718196087582,
-    27.77278790923564,
-    29.59053313200073,
-    28.870310583210227,
-    31.749523192070644,
-    30.952621584572697,
-    32.663341485464805,
-    34.83554042449372,
-    36.25524575353574,
-    35.96627008345233,
-    36.83335733441087,
-    37.268640439384555,
-    36.87069848651231,
-    38.884863881110704,
-    38.19708985887307,
-    39.698756248496714,
-    38.435518309423394,
-    37.97206996786861,
-    36.65517029868613,
-    36.90854583961801,
-    36.145282042066455,
-    35.36944549217387,
+    27.58196086304951,
+    26.2941055060429,
+    27.60074913672777,
+    27.734917520190848,
+    27.623803465617403,
+    28.280778912027678,
+    29.181017316831745,
+    29.955778503979218,
+    30.490534072211023,
+    32.00545219300297,
+    31.425965224590044,
+    31.96619265897072,
+    35.30283425736566,
+    35.28926959228366,
+    37.05791520945366,
+    39.12142459640137,
+    41.73536573690721,
+    45.35178890158762,
+    47.86881123211086,
+    51.4743859524373,
+    53.78921061613826,
+    57.57392669712933,
+    57.88070002673168,
 )
 _BASELINE_RETENTION_FRACTION = (
     1.0,
@@ -334,8 +336,8 @@ def _baseline_leg_inputs():
     )
 
 
-def test_default_escape_parameters_match_prechange_baseline():
-    """新参数缺省时结果必须与硬编码基线逐位一致（含步长守卫口径）。"""
+def test_default_escape_parameters_match_fixed_power_baseline():
+    """缺省逃逸参数必须与固定源功率硬编码基线逐位一致。"""
     trace, final = simulate_leg_monte_carlo(
         _baseline_leg_inputs(),
         _DETUNING_GHZ,

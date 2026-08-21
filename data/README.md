@@ -48,8 +48,9 @@
 ## `l1_transport_defaults.json`
 
 这是 `l1-transport-scan` 与 `l1-handover-scan` 的集中配置，保存失谐/功率网格、MOT 和 L1
-初态、运输距离/加速度/速度、沿程束腰、光路效率、统计损失系数、技术
-噪声接口、工作点权重、handover Monte Carlo 和画图参数。论文没有给出的损失系数默认置零，
+初态、运输距离/加速度/速度、L1 起点直径/最小束腰/焦点位置、光路
+效率、统计损失系数、技术噪声接口、工作点权重、handover Monte Carlo
+和画图参数。论文没有给出的损失系数默认置零，
 需要用实验标定值替换后才能预测对应的真实速率损失。
 
 当前统一扫描范围为 100–800 GHz、0–1.5 W；`initial_state.temperature_uK`
@@ -79,7 +80,7 @@ L1 初态边界的前级存活率记录；`loaded_l1_atom_number` 已是 L1 初�
 双物种效率图与联合扫描使用同一批 L1→handover 数据。
 
 `conveyor_geometry` 是可选的 offset-waist 双束 conveyor 几何分组：
-`enabled`（默认 `false`，关闭时 L1/L2 行为与既有模型逐位一致）、
+`enabled`（默认 `false`；关闭时 L1 使用标定高斯包络，L2 使用端点剖面）、
 `waist_um`（单束腰，默认 250 µm）和 `waist_separation_cm`（束腰
 间距 s，默认 19.5 cm = L1 距离的一半，即两腰位于 1/4、3/4 处）。
 启用后 L1/L2 腿改用逐点几何剖面和恒源端功率策略，公式见
@@ -102,7 +103,8 @@ L1 每网格点数十秒级。GPU 扫描时 L1 腿、handover 与全链路 L2 �
 `l2_transport` 分组保存 `full-chain-scan` 的 L2 段固定参数：运输距离
 0.17 m、加速度 4000 m/s²、最大速度 9.07 m/s（由论文 17 cm / 21 ms
 按对称梯形轨迹推导）、末端束腰 150 µm、时间点数和占据格点数。起点
-束腰沿用 `transport.handover_waist_um`（250 µm），L2 初态由 handover
+束腰沿用由 L1 起点直径、最小束腰和焦点位置自动计算的
+`transport.handover_waist_um`，L2 初态由 handover
 Monte Carlo 的捕获样本逐点给出，不在这个文件中固定。
 
 `transport_monte_carlo` 分组控制可选的轨迹级运输 MC：`enabled`

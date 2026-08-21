@@ -120,6 +120,8 @@ def test_gpu_transport_leg_matches_cpu_statistically():
     base = replace(
         l1_transport_inputs_for_species("Rb-87"),
         distance_m=0.005,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         acceleration_m_s2=4000.0,
         maximum_velocity_m_s=4.0,
         time_points=11,
@@ -502,6 +504,8 @@ def _leg_batch_test_inputs(**overrides):
     base = replace(
         l1_transport_inputs_for_species("Rb-87"),
         distance_m=0.005,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         acceleration_m_s2=4000.0,
         maximum_velocity_m_s=4.0,
         time_points=11,
@@ -747,6 +751,8 @@ def test_scan_gpu_mc_transport_batch_legs():
     transport = replace(
         l1_transport_inputs_for_species("Rb-87"),
         distance_m=0.005,
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         acceleration_m_s2=4000.0,
         maximum_velocity_m_s=4.0,
         detuning_min_ghz=250.0,

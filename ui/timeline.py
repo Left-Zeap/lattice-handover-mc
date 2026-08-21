@@ -134,4 +134,5 @@ def build_full_series(simulation: FullChainPointSimulation) -> dict[str, object]
         if len(values) != len(phase):
             raise ValueError(f"全程序列 {field_name} 与时间轴长度不一致")
         series[field_name] = np.asarray(values)
+    series["beam_diameter_um"] = 2.0 * np.asarray(series["waist_um"])
     return series

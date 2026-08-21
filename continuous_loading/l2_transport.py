@@ -1,8 +1,9 @@
 """Lattice-2 宏观运输腿与科学区原子库汇总。
 
-handover 捕获的原子已经在 Lattice-2 中（handover 束腰处静止）。本模块
+handover 捕获的原子已经在 Lattice-2 中（handover 局部光束半径处静止）。本模块
 把这批原子作为初态，复用 ``simulate_l1_transport`` 的单段晶格运输积分器
-计算 L2 段（论文：0.17 m / 21 ms、束腰 250→150 µm、加速度 4000 m/s²）
+计算 L2 段（论文：0.17 m / 21 ms、handover 模式匹配半径→150 µm、
+加速度 4000 m/s²）
 的宏观升温和统计留存率，并汇总科学区原子库的密度量级。
 
 温度口径假设：handover Monte Carlo 的 ``final_temperature_uK`` 是捕获
@@ -10,8 +11,8 @@ handover 捕获的原子已经在 Lattice-2 中（handover 束腰处静止）。
 初温，等价于假设 21 ms 运输中碰撞把系综再热化；当前密度下每原子约
 一次碰撞，这是边际假设，引用结果时应显式说明。
 
-功率口径与 L1 一致：恒阱深假设下源端功率随束腰平方缩放，L2 末端
-（150 µm）源功率 = handover 端（250 µm）源功率 × (150/250)²。
+功率口径与 L1 一致：每条晶格分支的源端功率在 L2 全程固定，局部
+光强和阱深随高斯束腰变化。
 
 若 ``L1TransportInputs.conveyor_enabled=True``，``replace`` 会把
 conveyor 几何参数一并带入 L2 腿（L=0.17 m，束腰间距按同一 s 解释，
@@ -139,6 +140,9 @@ def l2_leg_inputs(
         maximum_velocity_m_s=l2_inputs.maximum_velocity_m_s,
         kinematic_profile=l2_inputs.kinematic_profile,
         start_waist_um=transport_inputs.handover_waist_um,
+        # minimum_waist_* 只定义 L1；L2 暂沿用既有端点插值接口。
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         handover_waist_um=l2_inputs.end_waist_um,
         time_points=l2_inputs.time_points,
         initial_temperature_uK=captured_temperature_uK,
@@ -154,9 +158,8 @@ def l2_end_source_power_w(
     l2_inputs: L2TransportInputs,
     handover_source_power_w: float,
 ) -> float:
-    """恒阱深假设下 L2 末端束腰处的每分支源端功率（随束腰平方缩放）。"""
-    waist_ratio = l2_inputs.end_waist_um / transport_inputs.handover_waist_um
-    return handover_source_power_w * waist_ratio**2
+    """固定源端功率口径下 L2 末端每分支的源端功率。"""
+    return handover_source_power_w
 
 
 def l2_result_from_leg_trace(
@@ -249,8 +252,8 @@ def simulate_l2_transport(
     """把 handover 捕获样本作为初态，积分 L2 段宏观运输。
 
     ``handover_source_power_w`` 是 handover 束腰（250 µm）处每条晶格
-    分支的源端功率，与 L1 扫描网格同一口径；L2 腿内部按恒阱深把功率
-    随束腰平方缩放到 150 µm。
+    分支的源端功率，与 L1 扫描网格同一口径；L2 腿内部保持该源端功率
+    不变，局部光强随束腰变化。
     """
     if not math.isfinite(captured_temperature_uK) or captured_temperature_uK <= 0.0:
         raise ValueError("handover 捕获温度必须是有限正数")

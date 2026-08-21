@@ -70,6 +70,9 @@ def _small_leg_inputs(**overrides):
         time_points=21,
         transport_method="monte_carlo",
         transport_time_step_us=0.5,
+        # 小距离数值核验沿用旧端点剖面；论文尺度的标定高斯几何另测。
+        minimum_waist_um=None,
+        minimum_waist_position_m=None,
         **_mc_overrides(),
     )
     base.update(overrides)
@@ -142,8 +145,8 @@ def test_double_beam_force_matches_potential_gradient():
     assert relative_error < 5e-5
 
 
-def test_non_conveyor_antinode_matches_evaluate_lattice():
-    """关闭 conveyor 时双束波腹与 evaluate_lattice 的 (1+√R)² 一致。"""
+def test_non_conveyor_fixed_power_antinode_follows_gaussian_waist():
+    """关闭 conveyor 时源功率恒定，波腹强度按 1/w² 沿程变化。"""
     inputs = _small_leg_inputs()
     detuning_ghz = 300.0
     wavelength_nm = RB87.laser_wavelength_red_of_d1_nm(detuning_ghz)
@@ -163,7 +166,7 @@ def test_non_conveyor_antinode_matches_evaluate_lattice():
         RB87,
         wavelength_nm,
         forward_power_w=source_power_w * inputs.delivery_efficiency,
-        waist_um=inputs.handover_waist_um,
+        waist_um=inputs.start_waist_um,
         retro_power_ratio=inputs.retro_power_ratio,
     )
     assert math.isclose(
@@ -171,11 +174,10 @@ def test_non_conveyor_antinode_matches_evaluate_lattice():
         abs(lattice.dipole.potential_j),
         rel_tol=1e-9,
     )
-    # 恒阱深功率跟随下波腹强度沿程不变。
-    assert np.allclose(
-        profile.intensity1_w_m2,
-        profile.intensity1_w_m2[0],
-        rtol=1e-12,
+    assert np.allclose(profile.source_power_w, source_power_w, rtol=1e-12)
+    assert profile.intensity1_w_m2[-1] / profile.intensity1_w_m2[0] == pytest.approx(
+        (inputs.start_waist_um / inputs.handover_waist_um) ** 2,
+        rel=1e-12,
     )
 
 

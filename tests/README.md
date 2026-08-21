@@ -38,7 +38,7 @@ python -m pytest -vv
 | `test_l1_transport.py` | L1 梯形时序、功率随束腰缩放、宏观损失积分、二维扫描与四联图 |
 | `test_l1_handover.py` | transport 末温和原子数向 handover 的接口传递、统一网格与全流程四联图、自适应粒子加密第二遍复算 |
 | `test_conveyor_geometry.py` | offset-waist 束腰半径、与 evaluate_lattice 的阱深锚定、可见度极限、错腰摊平效果、关闭回归 |
-| `test_l2_transport.py` | L2 梯形时序复现论文 21 ms、恒阱深功率缩放、绝热压缩升温、非法输入 |
+| `test_l2_transport.py` | L2 梯形时序复现论文 21 ms、固定源端功率、束腰压缩升温、非法输入 |
 | `test_full_chain.py` | handover 捕获态向 L2 腿的传递、三段留存率相乘闭环、零捕获点排除、全链路四联图 |
 | `test_transport_mc.py` | 运输 MC 力-势梯度一致、静态深阱守恒、蒸发选择、种子复现、步长收敛、解析量级一致、采样失败零留存、MC 模式扫描启动与逐点隔离 |
 | `test_gpu_backend.py` | 后端校验、GPU 可用性守卫、CPU/GPU 统计一致（handover 与运输腿）、GPU 种子复现、固定相位口径 GPU 捕获系综返回、表单后端字段往返、设备端循环 kernel 与逐步融合路径统计一致、逐点初态白名单批量、全链路 L2 批量调度 |

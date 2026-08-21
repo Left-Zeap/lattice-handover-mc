@@ -81,6 +81,26 @@ def _small_form_params() -> dict:
     return params
 
 
+def test_legacy_l1_waist_dict_interface_still_builds():
+    """旧前端只传起点/交接半径时继续使用线性兼容剖面。"""
+    from ui import controllers
+
+    params = controllers.default_form_params("Rb-87")
+    for key in (
+        "l1_start_beam_diameter_um",
+        "l1_minimum_waist_um",
+        "l1_minimum_waist_position_m",
+    ):
+        params.pop(key)
+    params["l1_start_waist_um"] = 330.0
+    params["handover_waist_um"] = 250.0
+
+    transport = controllers.build_full_chain_inputs(params).handover.transport
+    assert not transport.calibrated_gaussian_geometry
+    assert transport.start_waist_um == pytest.approx(330.0)
+    assert transport.handover_waist_um == pytest.approx(250.0)
+
+
 def test_timeline_build_and_sample():
     """时间轴单调、三相齐全、末端到科学区，采样插值与夹取正确。"""
     import numpy as np
@@ -228,9 +248,32 @@ def test_no_wheel_spinbox_ignores_wheel(qapp):
 
 def test_phase_space_and_waveform_form_logic_matches_compute_modes(qapp):
     """高保真模式锁定 MC；扫描禁用；实测文件接管理想时序字段。"""
+    from ui import controllers
     from ui.widgets.forms import ChainParameterForm
 
     single = ChainParameterForm()
+    assert "target_depth_uK" not in single._widgets
+    assert "target_depth_uK" not in single.params()
+    assert "handover_waist_um" not in single._widgets
+    assert "l1_start_waist_um" not in single._widgets
+    assert single._specs["l1_start_beam_diameter_um"].label == (
+        "L1 起点光束直径 2w (µm)"
+    )
+    assert single._specs["l1_minimum_waist_um"].label == (
+        "L1 最小束腰半径 w₀ (µm)"
+    )
+    assert single._specs["source_power_w"].label == (
+        "L1/L2 固定源端功率/分支 (W)"
+    )
+    built = controllers.build_full_chain_inputs(single.params())
+    assert built.handover.transport.target_depth_uK == pytest.approx(
+        controllers.default_form_params()["target_depth_uK"]
+    )
+    geometry = built.handover.transport
+    assert geometry.start_beam_diameter_um == pytest.approx(660.0)
+    assert geometry.minimum_waist_um == pytest.approx(250.0)
+    assert geometry.minimum_waist_position_m == pytest.approx(0.2)
+    assert geometry.handover_waist_um == pytest.approx(323.0727472)
     continuity = single._widgets["phase_space_continuity"]
     continuity.setChecked(True)
     assert single._widgets["transport_method"].currentData() == "monte_carlo"
@@ -313,7 +356,7 @@ def test_handover_phase_mode_wiring(qapp):
 
 
 def test_build_full_series_covers_l1_and_l2():
-    """全程序列覆盖到 L2 末端；handover 段 NaN；L2 束腰 250→150 µm。"""
+    """全程序列覆盖到 L2 末端；handover 段 NaN；L2 从 L1 交接半径压缩至 150 µm。"""
     import numpy as np
 
     from ui import controllers
@@ -339,9 +382,13 @@ def test_build_full_series_covers_l1_and_l2():
     ):
         assert np.all(np.isnan(series[key][handover]))
         assert np.all(np.isfinite(series[key][l2]))
-    # L2 段束腰从 handover 束腰 250 µm 降到末端 150 µm。
-    assert series["waist_um"][l2][0] == pytest.approx(250.0)
+    # L2 从 L1 自动计算的 handover 半径降到末端 150 µm。
+    l1_handover_radius = (
+        simulation.l1_handover_simulation.transport_trace.waist_um[-1]
+    )
+    assert series["waist_um"][l2][0] == pytest.approx(l1_handover_radius)
     assert series["waist_um"][l2][-1] == pytest.approx(150.0)
+    assert np.allclose(series["beam_diameter_um"], 2.0 * series["waist_um"], equal_nan=True)
 
 
 def test_export_live_figure_lookup(qapp):

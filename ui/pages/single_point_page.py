@@ -113,12 +113,14 @@ class SinglePointPage(QWidget):
         params = self.form.params()
         started = time.perf_counter()
         try:
+            chain_inputs = controllers.build_full_chain_inputs(params)
+            transport = chain_inputs.handover.transport
             metrics = controllers.lattice_quick_metrics(
                 str(params["atom_label"]),
                 float(params["detuning_ghz"]),
                 float(params["source_power_w"]),
                 float(params["delivery_efficiency"]),
-                float(params["handover_waist_um"]),
+                transport.handover_waist_um,
                 float(params["retro_power_ratio"]),
             )
         except ValueError as exc:
@@ -126,14 +128,16 @@ class SinglePointPage(QWidget):
             return
         self.lattice_cards.set_metrics(
             [
-                ("阱深", format_value(float(metrics["depth_uK"])), "µK"),
-                ("散射率", format_value(float(metrics["scattering_rate_s"])), "s^-1"),
+                ("交接处光学阱深", format_value(float(metrics["depth_uK"])), "µK"),
+                ("交接处散射率", format_value(float(metrics["scattering_rate_s"])), "s^-1"),
                 ("径向阱频", format_value(float(metrics["radial_frequency_hz"]) / 1e3), "kHz"),
                 ("轴向阱频", format_value(float(metrics["axial_frequency_hz"]) / 1e3), "kHz"),
                 ("临界加速度", format_value(float(metrics["critical_axial_acceleration_m_s2"])), "m/s²"),
                 ("激光波长", format_value(float(metrics["laser_wavelength_nm"]), 6), "nm"),
-                ("波腹强度", format_value(float(metrics["antinode_intensity_w_m2"])), "W/m²"),
-                ("原子处前向功率", format_value(float(metrics["forward_power_w"])), "W"),
+                ("交接处波腹强度", format_value(float(metrics["antinode_intensity_w_m2"])), "W/m²"),
+                ("交接处原子前向功率", format_value(float(metrics["forward_power_w"])), "W"),
+                ("L1 交接处光束半径", format_value(transport.handover_waist_um), "µm"),
+                ("L1 交接处光束直径", format_value(transport.beam_diameter_um_at(transport.distance_m)), "µm"),
             ]
         )
         self.progress_label.setText(

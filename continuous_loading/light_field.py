@@ -8,7 +8,7 @@
   ``t, z_L, v_L, a, I1, I2, w1, w2``。生成逻辑复用
   ``l1_transport.l1_timing`` + ``l1_transport._kinematics``（梯形/
   minimum-jerk/实测波形时序）与 ``transport_mc._leg_optics_profile``
-  + ``transport_mc._leg_optics_at``（conveyor 或线性束腰剖面；
+  + ``transport_mc._leg_optics_at``（conveyor、L1 标定高斯或兼容线性剖面；
   ``control_waveform`` 的 waist/source_power/delivery 覆盖逻辑原样
   保留）。数组长度 = 步数+1，索引即 ``simulate_leg_monte_carlo``
   CPU 主循环的步号：step 0 对应 t=0 初始力，step k 对应第 k 个
@@ -143,8 +143,8 @@ class ChainLightField:
     ) -> "ChainLightField":
         """一次性算好三段光场时序表。
 
-        L2 腿输入经 ``l2_transport.l2_leg_inputs`` 构造，末端源端功率
-        经 ``l2_end_source_power_w`` 换算；L2 腿的捕获温度/原子数在
+        L2 腿输入经 ``l2_transport.l2_leg_inputs`` 构造，固定源端功率
+        经 ``l2_end_source_power_w`` 取得；L2 腿的捕获温度/原子数在
         预计算时刻尚未知，用 ``transport_inputs`` 的初值占位——它们只
         进入 trace 记账字段，不影响任何光场时序。
         """

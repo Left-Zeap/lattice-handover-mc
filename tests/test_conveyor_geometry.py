@@ -132,10 +132,8 @@ def test_disabled_by_default_matches_existing_behavior():
     inputs = l1_transport_inputs_for_species("Rb-87")
     assert inputs.conveyor_enabled is False
     trace = simulate_l1_transport(inputs, 300.0, 1.0)
-    assert trace.point.depth_uK == pytest.approx(510.0, rel=0.05)
-    assert trace.point.start_source_power_w == pytest.approx(
-        1.0 * (inputs.start_waist_um / inputs.handover_waist_um) ** 2
-    )
+    assert trace.point.depth_uK == pytest.approx(305.87, rel=0.05)
+    assert trace.point.start_source_power_w == pytest.approx(1.0)
 
 
 def _enabled_inputs() -> object:

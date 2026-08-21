@@ -252,8 +252,8 @@ def run_chain_monte_carlo(
 
     ``detuning_ghz`` 为 D1 线红失谐；``handover_source_power_w`` 为
     handover 束腰处每条晶格分支的源端功率（与解析腿/扫描网格同一
-    口径）。L2 腿的源端功率按 ``l2_end_source_power_w`` 恒阱深口径
-    随束腰平方缩放。
+    口径）。L1/L2 腿均保持每条晶格分支的源端功率固定，局部光强随
+    束腰变化。
     """
     transport = _chain_leg_inputs(inputs)
     handover_parameters = _chain_handover_parameters(inputs)
@@ -305,7 +305,7 @@ def run_chain_monte_carlo(
 
     # 6-7. L2 腿：旋转到 L2 局部系（相位已在 handover 出口规范化），
     # 同样的每步 + 宽容剔除；腿输入由 l2_leg_inputs 构造，源端功率
-    # 用 l2_end_source_power_w 口径。
+    # 用 l2_end_source_power_w 固定源端功率口径。
     l2_trace: L1TransportTrace | None = None
     science: ScienceRegionSummary | None = None
     s_l2 = 0.0

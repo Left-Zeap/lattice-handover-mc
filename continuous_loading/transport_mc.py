@@ -12,7 +12,7 @@
   剖面值。``|C_U|`` 由 ``dipole.scalar_potential_and_scattering``
   的单位强度系数给出。``conveyor_enabled`` 时 I_i、w_i 沿程取
   conveyor 几何剖面（源端功率恒定）；关闭时 w₁=w₂=线性插值束腰、
-  源端功率随束腰平方跟随（波腹强度沿程恒定），势退化为含节点
+  源端功率同样恒定（波腹强度按 1/w² 变化），势退化为含节点
   基底的单包络驻波，与 ``evaluate_lattice`` 的 (1+√R)² 波腹一致。
   两种模式共用同一套双束力代码。
 - 运动（§3.2）：z_L(t) 复用 ``l1_transport.l1_timing`` 与
@@ -137,8 +137,9 @@ def _leg_optics_profile(
 
     conveyor 开启：错腰双束半径（束腰位于 (L∓s)/2）+ 恒定源端功率，
     原子处前向功率 = 源端×传输效率，与 ``conveyor_point`` 同一口径；
-    关闭：w₁=w₂=线性插值束腰、源端功率随束腰平方跟随（与解析腿同一
-    口径，波腹强度沿程恒定）。
+    关闭：w₁=w₂=L1 标定高斯包络（旧输入可回退线性插值）、源端功率
+    恒定（与解析腿同一口径），前向/反射光强按 1/w² 沿程变化并形成
+    驻波。
     """
     distance = inputs.distance_m
     grid = np.linspace(0.0, distance, _PROFILE_GRID_POINTS)
@@ -168,14 +169,13 @@ def _leg_optics_profile(
         )
         source_power = np.full_like(grid, handover_source_power_w)
     else:
-        waist_um = inputs.start_waist_um + (
-            inputs.handover_waist_um - inputs.start_waist_um
-        ) * grid / distance
+        waist_um = np.asarray(
+            [inputs.beam_radius_um_at(float(position)) for position in grid],
+            dtype=float,
+        )
         w1 = waist_um * 1e-6
         w2 = w1.copy()
-        source_power = handover_source_power_w * (
-            waist_um / inputs.handover_waist_um
-        ) ** 2
+        source_power = np.full_like(grid, handover_source_power_w)
         intensity1 = (
             2.0
             * source_power

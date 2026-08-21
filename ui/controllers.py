@@ -90,7 +90,13 @@ def default_form_params(
         "l1_acceleration_m_s2": transport.acceleration_m_s2,
         "l1_maximum_velocity_m_s": transport.maximum_velocity_m_s,
         "l1_kinematic_profile": transport.kinematic_profile,
+        # 新 UI 使用直径；旧半径键继续输出，供历史调用兼容。
         "l1_start_waist_um": transport.start_waist_um,
+        "l1_start_beam_diameter_um": transport.start_beam_diameter_um,
+        "l1_minimum_waist_um": transport.minimum_waist_um,
+        "l1_minimum_waist_position_m": (
+            transport.minimum_waist_position_m
+        ),
         "l1_time_points": transport.time_points,
         "phase_space_continuity": False,
         "l1_control_waveform_path": "",
@@ -216,6 +222,33 @@ def build_full_chain_inputs(params: dict[str, object]) -> FullChainInputs:
         else HandoverControlWaveform.from_csv(handover_path)
     )
     species_transport = l1_transport_inputs_for_species(atom_label)
+    has_calibrated_l1_geometry = all(
+        key in params
+        for key in (
+            "l1_start_beam_diameter_um",
+            "l1_minimum_waist_um",
+            "l1_minimum_waist_position_m",
+        )
+    )
+    if has_calibrated_l1_geometry:
+        l1_start_waist_um = 0.5 * float(
+            params["l1_start_beam_diameter_um"]
+        )
+        l1_minimum_waist_um = float(params["l1_minimum_waist_um"])
+        l1_minimum_waist_position_m = float(
+            params["l1_minimum_waist_position_m"]
+        )
+        legacy_handover_waist_um = species_transport.handover_waist_um
+    else:
+        # 旧前端/脚本仍可只传起点半径和 handover 半径，继续走线性兼容模式。
+        l1_start_waist_um = float(
+            params.get("l1_start_waist_um", species_transport.start_waist_um)
+        )
+        l1_minimum_waist_um = None
+        l1_minimum_waist_position_m = None
+        legacy_handover_waist_um = float(
+            params.get("handover_waist_um", species_transport.handover_waist_um)
+        )
     transport = replace(
         species_transport,
         # 扫描网格参数为二维扫描页专属；其他页面缺省时回落物种默认。
@@ -259,12 +292,16 @@ def build_full_chain_inputs(params: dict[str, object]) -> FullChainInputs:
             if phase_space_continuity and l1_waveform is None
             else str(params.get("l1_kinematic_profile", "minimum_jerk"))
         ),
-        start_waist_um=float(params["l1_start_waist_um"]),
-        handover_waist_um=float(params["handover_waist_um"]),
+        start_waist_um=l1_start_waist_um,
+        minimum_waist_um=l1_minimum_waist_um,
+        minimum_waist_position_m=l1_minimum_waist_position_m,
+        handover_waist_um=legacy_handover_waist_um,
         time_points=int(params["l1_time_points"]),
         delivery_efficiency=float(params["delivery_efficiency"]),
         retro_power_ratio=float(params["retro_power_ratio"]),
-        target_depth_uK=float(params["target_depth_uK"]),
+        target_depth_uK=float(
+            params.get("target_depth_uK", species_transport.target_depth_uK)
+        ),
         conveyor_enabled=bool(params["conveyor_enabled"]),
         conveyor_waist_um=float(params["conveyor_waist_um"]),
         conveyor_waist_separation_cm=float(
@@ -373,7 +410,7 @@ def summarize_single_point_params(params: dict[str, object]) -> str:
     """历史记录用的单点参数摘要。"""
     return (
         f"{params['atom_label']} 失谐 {float(params['detuning_ghz']):g} GHz，"
-        f"源端功率 {float(params['source_power_w']):g} W，"
+        f"固定源功率/分支 {float(params['source_power_w']):g} W，"
         f"N={int(params['particle_count'])}"
         f"{_phase_summary(params)}"
     )
@@ -398,7 +435,7 @@ def summarize_cloud_sigma_params(params: dict[str, object]) -> str:
     """历史记录用的云宽扫描参数摘要。"""
     return (
         f"{params['atom_label']} 失谐 {float(params['detuning_ghz']):g} GHz，"
-        f"源端功率 {float(params['source_power_w']):g} W，"
+        f"固定源功率/分支 {float(params['source_power_w']):g} W，"
         f"云宽 {float(params.get('cloud_sigma_min_mm', 0.0)):g}"
         f"-{float(params.get('cloud_sigma_max_mm', 5.0)):g} mm "
         f"{int(params.get('cloud_sigma_points', 10))} 点，"

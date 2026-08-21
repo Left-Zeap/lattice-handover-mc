@@ -1,12 +1,12 @@
 """L1 晶格宏观时序、升温和统计留存率二维扫描。
 
-扫描变量是 handover 端每条晶格分支的源端功率和 D1 红失谐。固定
-运输距离、加速度和最大速度，采用梯形速度轨迹。沿程功率随束腰平方
-缩放以保持阱深近似恒定。模型只积分总体温度和原子数，不追踪单原子。
+扫描变量是每条晶格分支的固定源端功率和 D1 红失谐。固定运输距离、
+加速度和最大速度，采用梯形速度轨迹。束腰沿程变化，前向/反射光强
+按 1/w² 改变并形成驻波。模型只积分总体温度和原子数，不追踪单原子。
 
 可选的 offset-waist 双束 conveyor 几何（``conveyor_enabled``，默认
-关闭）把"线性束腰插值 + 恒阱深功率跟随"替换为逐点几何剖面：源端
-功率全程恒定，阱深/阱频/散射率由 ``conveyor_geometry`` 按错腰高斯
+关闭）把"标定高斯包络 + 等束腰反射光"替换为逐点几何剖面：源端
+功率仍全程恒定，阱深/阱频/散射率由 ``conveyor_geometry`` 按错腰高斯
 光束叠加给出，公式见
 ``reports/offset_waist双束conveyor几何理论框架.md`` §3。
 
@@ -131,6 +131,21 @@ class L1TransportInputs:
         _TRANSPORT.get("kinematic_profile", "trapezoid")
     )
     start_waist_um: float = float(_TRANSPORT["start_waist_um"])
+    # L1 标定高斯包络：起点半径由 UI 的起点直径换算；w0 与 z0
+    # 分别是最小束腰半径和距 L1 起点的位置。两项均为 None 时回退到
+    # 旧版 start_waist_um→handover_waist_um 线性插值，供旧调用兼容。
+    minimum_waist_um: float | None = (
+        None
+        if _TRANSPORT.get("minimum_waist_um") is None
+        else float(_TRANSPORT["minimum_waist_um"])
+    )
+    minimum_waist_position_m: float | None = (
+        None
+        if _TRANSPORT.get("minimum_waist_position_m") is None
+        else float(_TRANSPORT["minimum_waist_position_m"])
+    )
+    # 兼容字段：启用标定高斯包络时由 __post_init__ 自动改写为 z=L
+    # 的计算半径；handover、L2 和旧接口仍可沿用这个字段。
     handover_waist_um: float = float(_TRANSPORT["handover_waist_um"])
     time_points: int = int(_TRANSPORT["time_points"])
     delivery_efficiency: float = float(_OPTICS["delivery_efficiency"])
@@ -186,8 +201,77 @@ class L1TransportInputs:
     # 可选实测运输波形。None 时沿用原梯形速度/理想光学跟随接口。
     control_waveform: TransportControlWaveform | None = None
 
+    @property
+    def calibrated_gaussian_geometry(self) -> bool:
+        """是否使用由起点直径、最小束腰和焦点位置标定的 L1 包络。"""
+        return (
+            self.minimum_waist_um is not None
+            and self.minimum_waist_position_m is not None
+        )
+
+    @property
+    def start_beam_diameter_um(self) -> float:
+        """L1 起点的 1/e² 光强直径 ``2w``。"""
+        return 2.0 * self.start_waist_um
+
+    @property
+    def effective_rayleigh_range_m(self) -> float | None:
+        """由三项实测几何反推的有效瑞利长度；线性兼容模式返回 None。"""
+        if not self.calibrated_gaussian_geometry:
+            return None
+        assert self.minimum_waist_um is not None
+        assert self.minimum_waist_position_m is not None
+        expansion = (self.start_waist_um / self.minimum_waist_um) ** 2 - 1.0
+        return self.minimum_waist_position_m / math.sqrt(expansion)
+
+    def beam_radius_um_at(self, position_m: float) -> float:
+        """返回 L1 运输轴任意位置的 1/e² 光强半径 ``w``。"""
+        position = float(position_m)
+        if not math.isfinite(position) or not 0.0 <= position <= self.distance_m:
+            raise ValueError("L1 光束位置必须位于 [0, distance_m]")
+        if not self.calibrated_gaussian_geometry:
+            return self.start_waist_um + (
+                self.handover_waist_um - self.start_waist_um
+            ) * position / self.distance_m
+        assert self.minimum_waist_um is not None
+        assert self.minimum_waist_position_m is not None
+        rayleigh_m = self.effective_rayleigh_range_m
+        assert rayleigh_m is not None
+        return self.minimum_waist_um * math.sqrt(
+            1.0
+            + ((position - self.minimum_waist_position_m) / rayleigh_m) ** 2
+        )
+
+    def beam_diameter_um_at(self, position_m: float) -> float:
+        """返回 L1 运输轴任意位置的 1/e² 光强直径 ``2w``。"""
+        return 2.0 * self.beam_radius_um_at(position_m)
+
     def __post_init__(self) -> None:
         _atom_from_label(self.atom_label)
+        if (self.minimum_waist_um is None) != (
+            self.minimum_waist_position_m is None
+        ):
+            raise ValueError("L1 最小束腰大小和位置必须同时提供或同时省略")
+        if self.calibrated_gaussian_geometry:
+            assert self.minimum_waist_um is not None
+            assert self.minimum_waist_position_m is not None
+            if (
+                not math.isfinite(self.minimum_waist_um)
+                or self.minimum_waist_um <= 0.0
+            ):
+                raise ValueError("L1 最小束腰必须是有限正数")
+            if (
+                not math.isfinite(self.minimum_waist_position_m)
+                or not 0.0 < self.minimum_waist_position_m < self.distance_m
+            ):
+                raise ValueError("L1 最小束腰位置必须严格位于运输区间内")
+            if self.start_waist_um <= self.minimum_waist_um:
+                raise ValueError("L1 起点光束半径必须大于最小束腰半径")
+            object.__setattr__(
+                self,
+                "handover_waist_um",
+                self.beam_radius_um_at(self.distance_m),
+            )
         positive = {
             "最小失谐": self.detuning_min_ghz,
             "最大失谐": self.detuning_max_ghz,
@@ -372,6 +456,11 @@ class L1TransportTrace:
     loading_trace: object | None = None
     pre_ramp_survival_fraction: float = 1.0
     calculation_boundary: str = "static_lattice_thermal"
+
+    @property
+    def beam_diameter_um(self) -> tuple[float, ...]:
+        """逐采样点的 1/e² 光强直径 ``2w``。"""
+        return tuple(2.0 * value for value in self.waist_um)
 
 
 @dataclass(frozen=True)
@@ -682,23 +771,54 @@ def simulate_l1_transport(
         )
     else:
         if inputs.control_waveform is None:
-            start_source_power = handover_source_power_w * (
-                inputs.start_waist_um / inputs.handover_waist_um
-            ) ** 2
+            start_source_power = handover_source_power_w
+            start_delivery = inputs.delivery_efficiency
+            start_waist_um = inputs.beam_radius_um_at(0.0)
         else:
             start_control = inputs.control_waveform.sample(0.0)
             start_source_power = handover_source_power_w * (
-                (
-                    inputs.start_waist_um / inputs.handover_waist_um
-                ) ** 2
-                if start_control["source_power_scale"] is None
+                1.0 if start_control["source_power_scale"] is None
                 else float(start_control["source_power_scale"])
             )
+            start_delivery = inputs.delivery_efficiency * (
+                1.0 if start_control["delivery_efficiency_scale"] is None
+                else float(start_control["delivery_efficiency_scale"])
+            )
+            start_waist_um = (
+                inputs.start_waist_um
+                if start_control["waist_um"] is None
+                else float(start_control["waist_um"])
+            )
+        start_lattice = evaluate_lattice(
+            atom,
+            wavelength_nm,
+            forward_power_w=start_source_power * start_delivery,
+            waist_um=start_waist_um,
+            retro_power_ratio=inputs.retro_power_ratio,
+        )
         handover_depth_uK = lattice.depth_uK
         handover_scattering_rate_s = lattice.scattering_rate_s
-        minimum_critical_acceleration = (
-            lattice.critical_axial_acceleration_m_s2
-        )
+        if inputs.control_waveform is None:
+            weakest_waist_um = max(
+                inputs.beam_radius_um_at(0.0),
+                inputs.beam_radius_um_at(inputs.distance_m),
+            )
+            weakest_lattice = evaluate_lattice(
+                atom,
+                wavelength_nm,
+                forward_power_w=(
+                    handover_source_power_w * inputs.delivery_efficiency
+                ),
+                waist_um=weakest_waist_um,
+                retro_power_ratio=inputs.retro_power_ratio,
+            )
+            minimum_critical_acceleration = (
+                weakest_lattice.critical_axial_acceleration_m_s2
+            )
+        else:
+            minimum_critical_acceleration = (
+                lattice.critical_axial_acceleration_m_s2
+            )
     feasible = (
         (
             not inputs.require_minimum_depth
@@ -728,15 +848,21 @@ def simulate_l1_transport(
         gravity_positions = np.asarray(
             [state[0] for state in gravity_kinematics]
         )
-        gravity_waists_m = (
-            inputs.start_waist_um
-            + (inputs.handover_waist_um - inputs.start_waist_um)
-            * gravity_positions
-            / inputs.distance_m
+        gravity_waists_m = np.asarray(
+            [
+                inputs.beam_radius_um_at(float(position))
+                for position in gravity_positions
+            ]
         ) * 1e-6
+        gravity_depths_j = (
+            lattice.depth_uK
+            * (inputs.handover_waist_um * 1e-6 / gravity_waists_m) ** 2
+            * 1e-6
+            * BOLTZMANN
+        )
         gravity_barrier_trace_uK = (
             gaussian_gravity_barriers_j(
-                lattice.depth_uK * 1e-6 * BOLTZMANN,
+                gravity_depths_j,
                 gravity_waists_m,
                 atom.mass_kg,
             )
@@ -771,11 +897,22 @@ def simulate_l1_transport(
             )
 
     else:
-        axial_omega = 2.0 * math.pi * lattice.axial_frequency_hz
-
         def jump_temperature(delta_a: float, time_s: float) -> float:
+            jump_position = _kinematics(time_s, inputs, timing)[0]
+            jump_lattice = evaluate_lattice(
+                atom,
+                wavelength_nm,
+                forward_power_w=(
+                    handover_source_power_w * inputs.delivery_efficiency
+                ),
+                waist_um=inputs.beam_radius_um_at(jump_position),
+                retro_power_ratio=inputs.retro_power_ratio,
+            )
+            axial_omega = 2.0 * math.pi * jump_lattice.axial_frequency_hz
             return (
-                atom.mass_kg * delta_a**2 / (6.0 * BOLTZMANN * axial_omega**2) * 1e6
+                atom.mass_kg * delta_a**2
+                / (6.0 * BOLTZMANN * axial_omega**2)
+                * 1e6
             )
 
     if inputs.conveyor_enabled:
@@ -785,9 +922,9 @@ def simulate_l1_transport(
         static_radial_depth_uK = start_local.depth_uK
         static_waist_um = start_local.effective_waist_um
     else:
-        static_depth_uK = lattice.depth_uK
-        static_radial_depth_uK = lattice.depth_uK
-        static_waist_um = inputs.start_waist_um
+        static_depth_uK = start_lattice.depth_uK
+        static_radial_depth_uK = start_lattice.depth_uK
+        static_waist_um = start_waist_um
     if inputs.include_gravity:
         gravity_barrier_j, _, _ = gaussian_gravity_trap(
             static_radial_depth_uK * 1e-6 * BOLTZMANN,
@@ -859,9 +996,7 @@ def simulate_l1_transport(
                 if inputs.control_waveform is None
                 else inputs.control_waveform.sample(float(time_s))
             )
-            geometric_waist = inputs.start_waist_um + (
-                inputs.handover_waist_um - inputs.start_waist_um
-            ) * position / inputs.distance_m
+            geometric_waist = inputs.beam_radius_um_at(position)
             waist = (
                 geometric_waist
                 if control is None or control["waist_um"] is None
@@ -869,7 +1004,6 @@ def simulate_l1_transport(
             )
             source_power = (
                 handover_source_power_w
-                * (waist / inputs.handover_waist_um) ** 2
                 if control is None or control["source_power_scale"] is None
                 else handover_source_power_w
                 * float(control["source_power_scale"])
@@ -880,35 +1014,21 @@ def simulate_l1_transport(
                 or control["delivery_efficiency_scale"] is None
                 else float(control["delivery_efficiency_scale"])
             )
-            if control is None or (
-                control["source_power_scale"] is None
-                and control["waist_um"] is None
-                and control["delivery_efficiency_scale"] is None
-            ):
-                radial_frequency = lattice.radial_frequency_hz * (
-                    inputs.handover_waist_um / waist
-                )
-                axial_frequency = lattice.axial_frequency_hz
-                scattering_rate = lattice.scattering_rate_s
-                barrier_depth_uK = lattice.depth_uK
-                radial_depth_uK = lattice.depth_uK
-                critical_acceleration = lattice.critical_axial_acceleration_m_s2
-            else:
-                local_lattice = evaluate_lattice(
-                    atom,
-                    wavelength_nm,
-                    forward_power_w=source_power * delivery,
-                    waist_um=waist,
-                    retro_power_ratio=inputs.retro_power_ratio,
-                )
-                radial_frequency = local_lattice.radial_frequency_hz
-                axial_frequency = local_lattice.axial_frequency_hz
-                scattering_rate = local_lattice.scattering_rate_s
-                barrier_depth_uK = local_lattice.depth_uK
-                radial_depth_uK = local_lattice.depth_uK
-                critical_acceleration = (
-                    local_lattice.critical_axial_acceleration_m_s2
-                )
+            local_lattice = evaluate_lattice(
+                atom,
+                wavelength_nm,
+                forward_power_w=source_power * delivery,
+                waist_um=waist,
+                retro_power_ratio=inputs.retro_power_ratio,
+            )
+            radial_frequency = local_lattice.radial_frequency_hz
+            axial_frequency = local_lattice.axial_frequency_hz
+            scattering_rate = local_lattice.scattering_rate_s
+            barrier_depth_uK = local_lattice.depth_uK
+            radial_depth_uK = local_lattice.depth_uK
+            critical_acceleration = (
+                local_lattice.critical_axial_acceleration_m_s2
+            )
         bar_frequency = (
             radial_frequency**2 * axial_frequency
         ) ** (1.0 / 3.0)
